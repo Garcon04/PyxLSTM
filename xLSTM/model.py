@@ -121,7 +121,7 @@ class CNN_xLSTM(nn.Module):
         conv3_out = self.conv3(input_seq.permute(0, 2, 1)).permute(0, 2, 1)
         
         # Concatenate the outputs of the three convolutional layers
-        output_seq = torch.cat([conv1_out, conv2_out, conv3_out], dim=2)
+        output_seq = torch.cat([conv1_out, conv2_out, conv3_out])
         
         if hidden_states is None:
             hidden_states = [None] * self.num_blocks
