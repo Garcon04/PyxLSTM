@@ -91,7 +91,7 @@ class CNN_xLSTM(nn.Module):
         # Three convolutional layers with kernel sizes 2, 3, and 4
         self.conv1 = nn.Conv1d(in_channels=input_size, out_channels=num_channels, kernel_size=2, padding=1)
         self.conv2 = nn.Conv1d(in_channels=input_size, out_channels=num_channels, kernel_size=3, padding=1)
-        self.conv3 = nn.Conv1d(in_channels=input_size, out_channels=num_channels, kernel_size=4, padding=2)
+        self.conv3 = nn.Conv1d(in_channels=input_size, out_channels=num_channels, kernel_size=4, padding=1)
 
         self.blocks = nn.ModuleList([
             xLSTMBlock(num_channels * 3, hidden_size, num_layers, dropout, lstm_type)
