@@ -147,4 +147,4 @@ class CNN_xLSTM(nn.Module):
             print("NaN detected in output_seq!")
         output_prob = self.sigmoid(output_seq)
     
-    return output_prob, hidden_states
+        return output_prob, hidden_states
