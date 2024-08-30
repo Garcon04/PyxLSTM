@@ -63,7 +63,6 @@ class xLSTM(nn.Module):
         
         return output_prob, hidden_states
 
-
 class CNN_xLSTM(nn.Module):
     """
     CNN-xLSTM model for malware detection with three convolutional layers.
@@ -103,11 +102,11 @@ class CNN_xLSTM(nn.Module):
     def forward(self, input_seq, hidden_states=None):
         """
         Forward pass of the CNN-xLSTM model for malware detection.
-    
+
         Args:
             input_seq (Tensor): Already embedded input sequence.
             hidden_states (list of tuples, optional): Initial hidden states for each block. Default: None.
-    
+
         Returns:
             tuple: Output probability and final hidden states.
         """
@@ -115,10 +114,6 @@ class CNN_xLSTM(nn.Module):
         if torch.isnan(input_seq).any():
             print("NaN detected in input_seq!")
         
-        # Ensure input_seq is 3D: [batch_size, sequence_length, input_size]
-        if input_seq.dim() == 2:
-            input_seq = input_seq.unsqueeze(1)  # Add sequence length dimension
-    
         # Apply convolutional layers
         conv1_out = self.conv1(input_seq.permute(0, 2, 1)).permute(0, 2, 1)
         conv2_out = self.conv2(input_seq.permute(0, 2, 1)).permute(0, 2, 1)
@@ -146,5 +141,5 @@ class CNN_xLSTM(nn.Module):
         if torch.isnan(output_seq).any():
             print("NaN detected in output_seq!")
         output_prob = self.sigmoid(output_seq)
-    
+        
         return output_prob, hidden_states
