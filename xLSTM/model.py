@@ -101,50 +101,50 @@ class CNN_xLSTM(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, input_seq, hidden_states=None):
-    """
-    Forward pass of the CNN-xLSTM model for malware detection.
-
-    Args:
-        input_seq (Tensor): Already embedded input sequence.
-        hidden_states (list of tuples, optional): Initial hidden states for each block. Default: None.
-
-    Returns:
-        tuple: Output probability and final hidden states.
-    """
-    # Check for NaN values in input_seq
-    if torch.isnan(input_seq).any():
-        print("NaN detected in input_seq!")
+        """
+        Forward pass of the CNN-xLSTM model for malware detection.
     
-    # Ensure input_seq is 3D: [batch_size, sequence_length, input_size]
-    if input_seq.dim() == 2:
-        input_seq = input_seq.unsqueeze(1)  # Add sequence length dimension
-
-    # Apply convolutional layers
-    conv1_out = self.conv1(input_seq.permute(0, 2, 1)).permute(0, 2, 1)
-    conv2_out = self.conv2(input_seq.permute(0, 2, 1)).permute(0, 2, 1)
-    conv3_out = self.conv3(input_seq.permute(0, 2, 1)).permute(0, 2, 1)
+        Args:
+            input_seq (Tensor): Already embedded input sequence.
+            hidden_states (list of tuples, optional): Initial hidden states for each block. Default: None.
     
-    # Adjust sizes if necessary to match
-    min_length = min(conv1_out.size(1), conv2_out.size(1), conv3_out.size(1))
-    conv1_out = conv1_out[:, :min_length, :]
-    conv2_out = conv2_out[:, :min_length, :]
-    conv3_out = conv3_out[:, :min_length, :]
+        Returns:
+            tuple: Output probability and final hidden states.
+        """
+        # Check for NaN values in input_seq
+        if torch.isnan(input_seq).any():
+            print("NaN detected in input_seq!")
+        
+        # Ensure input_seq is 3D: [batch_size, sequence_length, input_size]
+        if input_seq.dim() == 2:
+            input_seq = input_seq.unsqueeze(1)  # Add sequence length dimension
     
-    # Concatenate the outputs of the three convolutional layers
-    output_seq = torch.cat([conv1_out, conv2_out, conv3_out], dim=2)
-    
-    if hidden_states is None:
-        hidden_states = [None] * self.num_blocks
-    
-    for i, block in enumerate(self.blocks):
-        output_seq, hidden_states[i] = block(output_seq, hidden_states[i])
-        # Check for NaN values after each block
+        # Apply convolutional layers
+        conv1_out = self.conv1(input_seq.permute(0, 2, 1)).permute(0, 2, 1)
+        conv2_out = self.conv2(input_seq.permute(0, 2, 1)).permute(0, 2, 1)
+        conv3_out = self.conv3(input_seq.permute(0, 2, 1)).permute(0, 2, 1)
+        
+        # Adjust sizes if necessary to match
+        min_length = min(conv1_out.size(1), conv2_out.size(1), conv3_out.size(1))
+        conv1_out = conv1_out[:, :min_length, :]
+        conv2_out = conv2_out[:, :min_length, :]
+        conv3_out = conv3_out[:, :min_length, :]
+        
+        # Concatenate the outputs of the three convolutional layers
+        output_seq = torch.cat([conv1_out, conv2_out, conv3_out], dim=2)
+        
+        if hidden_states is None:
+            hidden_states = [None] * self.num_blocks
+        
+        for i, block in enumerate(self.blocks):
+            output_seq, hidden_states[i] = block(output_seq, hidden_states[i])
+            # Check for NaN values after each block
+            if torch.isnan(output_seq).any():
+                print(f"NaN detected after block {i+1}!")
+        
+        output_seq = self.output_layer(output_seq[:, -1, :])  # Taking the output of the last time step
         if torch.isnan(output_seq).any():
-            print(f"NaN detected after block {i+1}!")
-    
-    output_seq = self.output_layer(output_seq[:, -1, :])  # Taking the output of the last time step
-    if torch.isnan(output_seq).any():
-        print("NaN detected in output_seq!")
-    output_prob = self.sigmoid(output_seq)
+            print("NaN detected in output_seq!")
+        output_prob = self.sigmoid(output_seq)
     
     return output_prob, hidden_states
