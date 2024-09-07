@@ -46,6 +46,7 @@ class xLSTM(nn.Module):
         """
         # Check for NaN values in output_seq
         if torch.isnan(input_seq).any():
+            print("NaN detected in input_seq!")
         output_seq = input_seq
         
         if hidden_states is None:
