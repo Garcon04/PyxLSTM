@@ -49,7 +49,7 @@ class xLSTMBlock(nn.Module):
         self.norm = nn.LayerNorm(hidden_size)
         self.activation = nn.GELU()
         self.dropout_layer = nn.Dropout(dropout)
-        self.proj = nn.GELU(hidden_size, input_size)
+        self.proj = nn.Linear(hidden_size, input_size)
 
     def forward(self, input_seq, hidden_state=None):
         """
