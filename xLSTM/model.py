@@ -29,7 +29,7 @@ class xLSTM(nn.Module):
             xLSTMBlock(input_size, hidden_size, num_layers, dropout, lstm_type)
             for _ in range(num_blocks)
         ])
-        self.output_layer = nn.Linear(input_size, 1)
+        self.output_layer = nn.relu(input_size, 1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, input_seq, hidden_states=None):
@@ -97,7 +97,7 @@ class CNN_xLSTM(nn.Module):
             xLSTMBlock(num_channels, hidden_size, num_layers, dropout, lstm_type)
             for _ in range(num_blocks)
         ])
-        self.output_layer = nn.Linear(num_channels, 1)
+        self.output_layer = nn.relu(num_channels, 1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, input_seq, hidden_states=None):
