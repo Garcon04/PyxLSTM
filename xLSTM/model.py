@@ -29,8 +29,7 @@ class xLSTM(nn.Module):
             xLSTMBlock(input_size, hidden_size, num_layers, dropout, lstm_type)
             for _ in range(num_blocks)
         ])
-        
-        self.output_layer = nn.Linear(input_size, 1)  # Use linear output layer
+        self.output_layer = nn.Linear(input_size, 1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, input_seq, hidden_states=None):
@@ -44,11 +43,9 @@ class xLSTM(nn.Module):
         Returns:
             tuple: Output probability and final hidden states.
         """
-        # Check for NaN values in input_seq
+        # Check for NaN values in output_seq
         if torch.isnan(input_seq).any():
             print("NaN detected in input_seq!")
-            return None, hidden_states  # Stop if NaN is detected
-
         output_seq = input_seq
         
         if hidden_states is None:
@@ -56,13 +53,13 @@ class xLSTM(nn.Module):
         
         for i, block in enumerate(self.blocks):
             output_seq, hidden_states[i] = block(output_seq, hidden_states[i])
-            
             # Check for NaN values after each block
             if torch.isnan(output_seq).any():
-                print(f"NaN detected after block {i}!")
-                return None, hidden_states
+                print(f"NaN detected after block {i+1}!")
         
-        output_seq = self.output_layer(output_seq[:, -1, :])  # Output of the last time step
+        output_seq = self.output_layer(output_seq[:, -1, :])  # Taking the output of the last time step
+        if torch.isnan(output_seq).any():
+            print("NaN detected in output_seq!")
         output_prob = self.sigmoid(output_seq)
         
         return output_prob, hidden_states
@@ -94,15 +91,14 @@ class CNN_xLSTM(nn.Module):
         self.lstm_type = lstm_type
 
         # Convolutional layer
-        self.conv = nn.Conv1d(in_channels=input_size, out_channels=num_channels,
-                              kernel_size=kernel_size, padding=kernel_size//2, stride=2)
+        self.conv = nn.Conv1d(in_channels=input_size, out_channels=num_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=2)
         
         self.blocks = nn.ModuleList([
             xLSTMBlock(num_channels, hidden_size, num_layers, dropout, lstm_type)
             for _ in range(num_blocks)
         ])
-        
-        self.output_layer = nn.Linear(num_channels, 1)  # Use linear output layer
+        self.activation = nn.GELU()
+        self.output_layer = nn.Linear(num_channels, 1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, input_seq, hidden_states=None):
@@ -116,26 +112,27 @@ class CNN_xLSTM(nn.Module):
         Returns:
             tuple: Output probability and final hidden states.
         """
+        #print(f"input seq inside model.py: {input_seq.size()}")
         # Check for NaN values in input_seq
         if torch.isnan(input_seq).any():
             print("NaN detected in input_seq!")
-            return None, hidden_states  # Stop if NaN is detected
         
         # Apply convolutional layer
         output_seq = self.conv(input_seq.permute(0, 2, 1)).permute(0, 2, 1)
-        
         if hidden_states is None:
             hidden_states = [None] * self.num_blocks
         
         for i, block in enumerate(self.blocks):
             output_seq, hidden_states[i] = block(output_seq, hidden_states[i])
-            
             # Check for NaN values after each block
             if torch.isnan(output_seq).any():
-                print(f"NaN detected after block {i}!")
-                return None, hidden_states
+                print(f"NaN detected after block {i+1}!")
+                
+        output_seq = self.activation(output_seq)
         
-        output_seq = self.output_layer(output_seq[:, -1, :])  # Output of the last time step
+        output_seq = self.output_layer(output_seq[:, -1, :])  # Taking the output of the last time step
+        if torch.isnan(output_seq).any():
+            print("NaN detected in output_seq!")
         output_prob = self.sigmoid(output_seq)
         
         return output_prob, hidden_states
